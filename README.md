@@ -17,16 +17,18 @@ http://msaez.io/#/storming/nZJ2QhwVc4NlVJPbtTkZ8x9jclF2/every/a77281d704710b0c2e
 
 ## 구현:
 
+
+### 폴리글랏 퍼시스턴스 / 플랫폼
+
 ```
 cd 주문
-mvn spring-boot:run
+mvn spring-boot:run  # H2
 cd 결제
-mvn spring-boot:run
+mvn spring-boot:run  # H2
 cd 상점
-mvn spring-boot:run
+mvn spring-boot:run  # MySQL 
 cd 마케팅
-cd 결제
-mvn spring-boot:run
+python marketing  # 파이썬
 ```
 
 ### 비동기식 호출 / 시간적 디커플링 / 장애격리 / 최종 (Eventual) 일관성 테스트
