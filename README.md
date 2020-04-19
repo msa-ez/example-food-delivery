@@ -193,7 +193,10 @@
 
 
 ## 헥사고날 아키텍처 다이어그램 도출
-    - 
+    
+![image](https://user-images.githubusercontent.com/487999/79684772-eba9ab00-826e-11ea-9405-17e2bf39ec76.png)
+
+
     - Chris Richardson, MSA Patterns 참고하여 Inbound adaptor와 Outbound adaptor를 구분함
     - 호출관계에서 PubSub 과 Req/Resp 를 구분함
     - 서브 도메인과 바운디드 컨텍스트의 분리:  각 팀의 KPI 별로 아래와 같이 관심 구현 스토리를 나눠가짐
@@ -293,17 +296,35 @@ http localhost:8081/orders/1
 ```
 # Order.java
 
+package fooddelivery;
 
-# OrderRepository.java
+@Document
+public class Order {
 
+    private String id; // mongo db 적용시엔 id 는 고정값으로 key가 자동 발급되는 필드기 때문에 @Id 나 @GeneratedValue 를 주지 않아도 된다.
+    private String item;
+    private Integer 수량;
+
+}
+
+
+# 주문Repository.java
+package fooddelivery;
+
+public interface 주문Repository extends JpaRepository<Order, UUID>{
+}
 
 # application.yml
 
+  data:
+    mongodb:
+      host: mongodb.default.svc.cluster.local
+    database: mongo-example
 
-```
+# 개발기에서는 etc/hosts 파일에 "mongodb.default.svc.cluster.local" 호스트명으로 접속할 수 있는 개발기를 붙여주어야 한다.
+    e.g. 
+    x.x.x.x mongodb.default.svc.cluster.local
 
-MongoDB 를 이후 운영단계에서도 사용할 수 있게 하기 위해서 deployment.yaml 을 아래와 같이 설정하였다:
-```
 ```
 
 ## 폴리글랏 프로그래밍
