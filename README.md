@@ -86,28 +86,100 @@ https://workflowy.com/s/assessment-check-po/T5YrzcMewfo4J6LW
 
 ## 구현:
 
+분석/설계 단계에서 도출된 헥사고날 아키텍처에 따라, 각 BC별로 대변되는 마이크로 서비스들을 스프링부트와 파이선으로 구현하였다. 구현한 각 서비스를 로컬에서 실행하는 방법은 아래와 같다 (각자의 포트넘버는 8081 ~ 808n 이다)
+
 ```
-cd 주문
+cd app
 mvn spring-boot:run  # H2
-cd 결제
+cd pay
 mvn spring-boot:run  # H2
-cd 상점
+cd store
 mvn spring-boot:run  # MySQL 
-cd 마케팅
-python marketing  # 파이썬
+cd customer
+python policy-handler.py  # 파이썬
 ```
+
+### DDD 의 적용
+
+- 각 서비스내에 도출된 핵심 Aggregate Root 객체를 Entity 로 선언하였다: (예시는 pay 마이크로 서비스). 이때 가능한 현업에서 사용하는 언어 (유비쿼터스 랭귀지)를 그대로 사용하려고 노력했다. 하지만, 일부 구현에 있어서 영문이 아닌 경우는 실행이 불가능한 경우가 있기 때문에 계속 사용할 방법은 아닌것 같다. (Maven pom.xml, Kafka의 topic id, FeignClient 의 서비스 id 등은 한글로 식별자를 사용하는 경우 오류가 발생하는 것을 확인하였다)
+
+```
+package fooddelivery;
+
+import javax.persistence.*;
+import org.springframework.beans.BeanUtils;
+import java.util.List;
+
+@Entity
+@Table(name="결제이력_table")
+public class 결제이력 {
+
+    @Id
+    @GeneratedValue(strategy=GenerationType.AUTO)
+    private Long id;
+    private String orderId;
+    private Double 금액;
+
+    @PrePersist
+    public void onPrePersist(){
+        결제승인됨 결제승인됨 = new 결제승인됨();
+        BeanUtils.copyProperties(this, 결제승인됨);
+        결제승인됨.publish();
+    }
+
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+    public String getOrderId() {
+        return orderId;
+    }
+
+    public void setOrderId(String orderId) {
+        this.orderId = orderId;
+    }
+    public Double get금액() {
+        return 금액;
+    }
+
+    public void set금액(Double 금액) {
+        this.금액 = 금액;
+    }
+
+}
+
+```
+- Entity Pattern 과 Repository Pattern 을 적용하여 JPA 를 통하여 다양한 데이터소스 유형 (RDB or NoSQL) 에 대한 별도의 처리가 없도록 데이터 접근 어댑터를 자동 생성하기 위하여 Spring Data REST 의 RestRepository 를 적용하였다
+```
+package fooddelivery;
+
+import org.springframework.data.repository.PagingAndSortingRepository;
+
+public interface 결제이력Repository extends PagingAndSortingRepository<결제이력, Long>{
+}
+```
+- 적용 후 REST API 의 테스트
+```
+# app 서비스의 주문처리
+http localhost:8081/orders item="통닭"
+
+# store 서비스의 배달처리
+http localhost:8083/주문처리s orderId=1
+
+# 주문 상태 확인
+http localhost:8081/orders/1
+
+```
+
 
 ### 폴리글랏 퍼시스턴스 / 플랫폼
 
+고객관리 서비스의 시나리오인 주문상태, 배달상태 변경에 따라 고객에게 카톡메시지 보내는 기능의 구현 파트는 해당 팀이 python 을 이용하여 구현하기로 하였다. 해당 파이썬 구현체는 각 이벤트를 수신하여 처리하는 Kafka consumer 로 구현되었고 코드는 다음과 같다:
 ```
-cd 주문
-mvn spring-boot:run  # H2
-cd 결제
-mvn spring-boot:run  # H2
-cd 상점
-mvn spring-boot:run  # MySQL 
-cd 마케팅
-python marketing  # 파이썬
 ```
 
 ### 비동기식 호출 / 시간적 디커플링 / 장애격리 / 최종 (Eventual) 일관성 테스트
@@ -151,6 +223,11 @@ http localhost:8080/주문s 품목=피자 수량=2 주소=서울    #성공
 
 
 ## 운영
+
+### CI/CD 설정
+
+
+각 구현체들은 각자의 source repository 에 구성되었고, 사용한 CI/CD 플랫폼은 GCP를 사용하였으며, pipeline build script 는 각 프로젝트 폴더 이하에 cloudbuild.yml 에 포함되었다.
 
 
 ### 동기식 호출 / 서킷 브레이킹 / 장애격리
@@ -457,8 +534,3 @@ Concurrency:		       96.02
 
 배포기간 동안 Availability 가 변화없기 때문에 무정지 재배포가 성공한 것으로 확인됨.
 
-### 
-
-
-
-```
