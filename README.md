@@ -119,24 +119,24 @@
   ![image](https://user-images.githubusercontent.com/487999/79682333-500f3f00-825c-11ea-8a48-f51367a1592d.png)
 
 
-- 이벤트 도출
+## 이벤트 도출
 ![image](https://user-images.githubusercontent.com/487999/79683604-47bc0180-8266-11ea-9212-7e88c9bf9911.png)
 
-- 부적격 이벤트 탈락
+## 부적격 이벤트 탈락
 ![image](https://user-images.githubusercontent.com/487999/79683612-4b4f8880-8266-11ea-9519-7e084524a462.png)
 
     - 과정중 도출된 잘못된 도메인 이벤트들을 걸러내는 작업을 수행함
         - 주문시>메뉴카테고리선택됨, 주문시>메뉴검색됨 :  UI 의 이벤트이지, 업무적인 의미의 이벤트가 아니라서 제외
 
-- 액터, 커맨드 부착하여 읽기 좋게
+## 액터, 커맨드 부착하여 읽기 좋게
 ![image](https://user-images.githubusercontent.com/487999/79683614-4ee30f80-8266-11ea-9a50-68cdff2dcc46.png)
 
-- 어그리게잇으로 묶기
+## 어그리게잇으로 묶기
 ![image](https://user-images.githubusercontent.com/487999/79683618-52769680-8266-11ea-9c21-48d6812444ba.png)
 
     - app의 Order, store 의 주문처리, 결제의 결제이력은 그와 연결된 command 와 event 들에 의하여 트랜잭션이 유지되어야 하는 단위로 그들 끼리 묶어줌
 
-- 바운디드 컨텍스트로 묶기
+## 바운디드 컨텍스트로 묶기
 
 ![image](https://user-images.githubusercontent.com/487999/79683625-560a1d80-8266-11ea-9790-40d68a36d95d.png)
 
@@ -145,26 +145,26 @@
         - Supporting Domain:   marketing, customer : 경쟁력을 내기위한 서비스이며, SLA 수준은 연간 60% 이상 uptime 목표, 배포주기는 각 팀의 자율이나 표준 스프린트 주기가 1주일 이므로 1주일 1회 이상을 기준으로 함.
         - General Domain:   pay : 결제서비스로 3rd Party 외부 서비스를 사용하는 것이 경쟁력이 높음 (핑크색으로 이후 전환할 예정)
 
-- 폴리시 부착 (괄호는 수행주체, 폴리시 부착을 둘째단계에서 해놔도 상관 없음. 전체 연계가 초기에 드러남)
+## 폴리시 부착 (괄호는 수행주체, 폴리시 부착을 둘째단계에서 해놔도 상관 없음. 전체 연계가 초기에 드러남)
 
 ![image](https://user-images.githubusercontent.com/487999/79683633-5aced180-8266-11ea-8f42-c769eb88dfb1.png)
 
-- 폴리시의 이동과 컨텍스트 매핑 (점선은 Pub/Sub, 실선은 Req/Resp)
+## 폴리시의 이동과 컨텍스트 매핑 (점선은 Pub/Sub, 실선은 Req/Resp)
 
 ![image](https://user-images.githubusercontent.com/487999/79683641-5f938580-8266-11ea-9fdb-4e80ff6642fe.png)
 
-- 완성된 1차 모형
+## 완성된 1차 모형
 
 ![image](https://user-images.githubusercontent.com/487999/79683646-63bfa300-8266-11ea-9bc5-c0b650507ac8.png)
 
 
-- 1차 완성본에 대한 기능적 요구사항을 커버하는지 검증
+## 1차 완성본에 대한 기능적/비기능적 요구사항을 커버하는지 검증
 
   ![image](https://user-images.githubusercontent.com/487999/79682341-64ebd280-825c-11ea-966d-7d9e32f73cfe.png)
   ![image](https://user-images.githubusercontent.com/487999/79682344-6c12e080-825c-11ea-8722-5395ad20f274.png)
 
 
-- 비기능적 요구사항에 대한 반영 - 컨테스트 매핑/이벤트 드리븐 설계
+## 비기능적 요구사항에 대한 반영 - 컨테스트 매핑/이벤트 드리븐 설계
     - 마이크로 서비스를 넘나드는 시나리오에 대한 트랜잭션 처리
         - 고객 주문시 결제처리:  결제가 완료되지 않은 주문은 절대 받지 않는다는 경영자의 오랜 신념(?) 에 따라, ACID 트랜잭션 적용. 주문와료시 결제처리에 대해서는 Request-Response 방식 처리
         - 결제 완료시 점주연결 및 배송처리:  App(front) 에서 Store 마이크로서비스로 주문요청이 전달되는 과정에 있어서 Store 마이크로 서비스가 별도의 배포주기를 가지기 때문에 Eventual Consistency 방식으로 트랜잭션 처리함.
@@ -175,7 +175,7 @@
   ![image](https://user-images.githubusercontent.com/487999/79682355-792fcf80-825c-11ea-823e-d3adf175a44f.png)
 
 
-- 헥사고날 아키텍처 다이어그램 도출
+## 헥사고날 아키텍처 다이어그램 도출
     - 
     - Chris Richardson, MSA Patterns 참고하여 Inbound adaptor와 Outbound adaptor를 구분함
     - 호출관계에서 PubSub 과 Req/Resp 를 구분함
