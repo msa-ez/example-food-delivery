@@ -10,12 +10,18 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class PolicyHandler{
+
+    @Autowired 주문관리Repository 주문관리Repository;
     
     @StreamListener(KafkaProcessor.INPUT)
     public void whenever결제승인됨_주문정보받음(@Payload 결제승인됨 결제승인됨){
 
         if(결제승인됨.isMe()){
             System.out.println("##### listener 주문정보받음 : " + 결제승인됨.toJson());
+
+            주문관리 주문 = new 주문관리();
+            주문.setId(결제승인됨.getOrderId())
+            주문관리Repository.save(주문);
         }
     }
     @StreamListener(KafkaProcessor.INPUT)
