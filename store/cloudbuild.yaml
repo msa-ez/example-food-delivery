@@ -1,0 +1,103 @@
+steps:
+  ### Test
+  #  - id: 'test'
+  #    name: 'gcr.io/cloud-builders/mvn'
+  #    args: [
+  #      'test',
+  #      '-Dspring.profiles.active=test'
+  #    ]
+  ### Build
+  - id: 'build'
+    name: 'gcr.io/cloud-builders/mvn'
+    args: [
+      'clean',
+      'package'
+      #      '-Dmaven.test.skip=true'
+    ]
+  #    waitFor: ['test']
+  ### docker Build
+  - id: 'docker build'
+    name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '--tag=gcr.io/$PROJECT_ID/$_PROJECT_NAME:latest'
+      - '.'
+  ### Publish
+  - id: 'publish'
+    name: 'gcr.io/cloud-builders/docker'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        docker push gcr.io/$PROJECT_ID/$_PROJECT_NAME:latest
+  ### deploy
+  - id: 'deploy'
+    name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        PROJECT=$$(gcloud config get-value core/project)
+        gcloud container clusters get-credentials "$${CLOUDSDK_CONTAINER_CLUSTER}" \
+          --project "$${PROJECT}" \
+          --zone "$${CLOUDSDK_COMPUTE_ZONE}"
+        cat <<EOF | kubectl apply -f -
+        apiVersion: v1
+        kind: Service
+        metadata:
+          name: $_PROJECT_NAME
+          labels:
+            app: $_PROJECT_NAME
+        spec:
+          ports:
+            - port: 8080
+              targetPort: 8080
+          selector:
+            app: $_PROJECT_NAME
+        EOF
+        cat <<EOF | kubectl apply -f -
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+          name: $_PROJECT_NAME
+          labels:
+            app: $_PROJECT_NAME
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
+              app: $_PROJECT_NAME
+          template:
+            metadata:
+              labels:
+                app: $_PROJECT_NAME
+            spec:
+              containers:
+                - name: $_PROJECT_NAME
+                  image: gcr.io/$PROJECT_ID/$_PROJECT_NAME:latest
+                  ports:
+                    - containerPort: 8080
+                  readinessProbe:
+                    httpGet:
+                      path: /actuator/health
+                      port: 8080
+                    initialDelaySeconds: 10
+                    timeoutSeconds: 2
+                    periodSeconds: 5
+                    failureThreshold: 10
+                  livenessProbe:
+                    httpGet:
+                      path: /actuator/health
+                      port: 8080
+                    initialDelaySeconds: 120
+                    timeoutSeconds: 2
+                    periodSeconds: 5
+                    failureThreshold: 5
+        EOF
+substitutions:
+  _PROJECT_NAME: store
+options:
+  env:
+    #    # location/name of GKE cluster (used by all kubectl commands)
+    - CLOUDSDK_COMPUTE_ZONE=asia-northeast1-a
+    - CLOUDSDK_CONTAINER_CLUSTER=cluster-1
