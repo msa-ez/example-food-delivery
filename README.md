@@ -74,9 +74,73 @@ http localhost:8080/주문s 품목=피자 수량=2 주소=서울    #성공
 ## 운영
 
 
-### 동기식 호출 / 서킷 브레이킹 / 장애격``
+### 동기식 호출 / 서킷 브레이킹 / 장애격
+
+* 서킷 브레이킹 프레임워크의 선택: Spring FeignClient + Hystrix 옵션을 사용하여 구현함
+
+시나리오는 단말앱(app)-->결제(pay) 시의 연결을 RESTful Request/Response 로 연동하여 요청이 쇄도할 경우 CB 를 통하여 장애격리하는 시나리오.
+
+- 결제서비스를 호출하기 위하여 Stub과 (FeignClient) 를 이용하여 Service 대행 인터페이스 (Proxy) 를 구현 
+
 ```
-부하테스트를 통한 서킷 브레이커 동작 확인:
+# (app) 결제이력Service.java
+
+package fooddelivery.external;
+
+@FeignClient(name="pay", url="http://localhost:8082")//, fallback = 결제이력ServiceFallback.class)
+public interface 결제이력Service {
+
+    @RequestMapping(method= RequestMethod.POST, path="/결제이력s")
+    public void 결제(@RequestBody 결제이력 pay);
+
+}
+```
+
+- 주문을 받은 직후(@PostPersist) 결제를 요청하도록 처리
+```
+# Order.java (Entity)
+
+    @PostPersist
+    public void onPostPersist(){
+
+        fooddelivery.external.결제이력 pay = new fooddelivery.external.결제이력();
+        pay.setOrderId(getOrderId());
+        
+        Application.applicationContext.getBean(fooddelivery.external.결제이력Service.class)
+                .결제(pay);
+    }
+```
+
+- Hystrix 를 설정:  요청처리 쓰레드에서 처리시간이 610 밀리가 넘어서기 시작하여 어느정도 유지되면 CB 회로가 닫히도록 (요청을 빠르게 실패처리, 차단) 설정
+```
+# application.yml
+
+hystrix:
+  command:
+    # 전역설정
+    default:
+      execution.isolation.thread.timeoutInMilliseconds: 610
+
+```
+
+- 피호출 서비스(결제:pay) 의 임의 부하 처리 - 400 밀리에서 증감 220 밀리 정도 왔다갔다 하게
+```
+# (pay) 결제이력.java (Entity)
+
+    @PrePersist
+    public void onPrePersist(){  //결제이력을 저장한 후 적당한 시간 끌기
+
+        ...
+        
+        try {
+            Thread.currentThread().sleep((long) (400 + Math.random() * 220));
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+```
+
+* 부하테스터 siege 툴을 통한 서킷 브레이커 동작 확인:
 - 동시사용자 100명
 - 60초 동안 실시
 
