@@ -19,12 +19,12 @@ public class PolicyHandler{
 
         if(배달시작됨.isMe() && 배달시작됨.getOrderId()!=null){
 
-            try {
-                // 원래 데이터가 트랜잭션 커밋되기도 전에 이벤트가 너무 빨리 도달하는 경우를 막기 위함
-                Thread.currentThread().sleep(3000); //  no good.
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+//            try {
+//                // 원래 데이터가 트랜잭션 커밋되기도 전에 이벤트가 너무 빨리 도달하는 경우를 막기 위함
+//                Thread.currentThread().sleep(3000); //  no good. --> pay 가 TX 를 마친 후에만 실행되도록 수정함
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
 
             System.out.println("배달시작됨 orderId = " + 배달시작됨.getOrderId());
 
