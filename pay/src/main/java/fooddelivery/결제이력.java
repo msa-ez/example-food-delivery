@@ -13,18 +13,28 @@ public class 결제이력 {
     private Long id;
     private String orderId;
     private Double 금액;
+    private String 행위;
 
     @PrePersist
     public void onPrePersist(){
-        결제승인됨 결제승인됨 = new 결제승인됨();
-        BeanUtils.copyProperties(this, 결제승인됨);
-        결제승인됨.publish();
+
+        if("취소".equals(행위)){
+            결제취소됨 결제취소됨 = new 결제취소됨();
+            BeanUtils.copyProperties(this, 결제취소됨);
+            결제취소됨.publish();
+
+        }else{
+            결제승인됨 결제승인됨 = new 결제승인됨();
+            BeanUtils.copyProperties(this, 결제승인됨);
+            결제승인됨.publish();
 
 
-        try {
-            Thread.currentThread().sleep((long) (400 + Math.random() * 220));
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+            try {
+                Thread.currentThread().sleep((long) (400 + Math.random() * 220));
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
         }
     }
 
@@ -52,6 +62,11 @@ public class 결제이력 {
     }
 
 
+    public String get행위() {
+        return 행위;
+    }
 
-
+    public void set행위(String 행위) {
+        this.행위 = 행위;
+    }
 }
