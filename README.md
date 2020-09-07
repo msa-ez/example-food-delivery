@@ -525,7 +525,10 @@ http localhost:8080/orders     # 모든 주문의 상태가 "배송됨"으로 �
 - Hystrix 를 설정:  요청처리 쓰레드에서 처리시간이 610 밀리가 넘어서기 시작하여 어느정도 유지되면 CB 회로가 닫히도록 (요청을 빠르게 실패처리, 차단) 설정
 ```
 # application.yml
-
+feign:
+  hystrix:
+    enabled: true
+    
 hystrix:
   command:
     # 전역설정
